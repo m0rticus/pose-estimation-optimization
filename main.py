@@ -213,6 +213,9 @@ def main():
         keypoints_with_scores = interpreter.get_tensor(output_details[0]['index'])
         return keypoints_with_scores
 
+    totalMax = 0
+    totalMin = 50000
+    timeList = []
     # Load the input image.
     print(os.listdir("videos"))
     for x in os.listdir("videos"):
@@ -236,20 +239,27 @@ def main():
                 preInference = time.time()
                 keypoints_with_scores = movenet(input_image)
                 inferenceTime = time.time() - preInference
+                if inferenceTime < totalMin:
+                    totalMin = inferenceTime
+                if inferenceTime > totalMax:
+                    totalMax = inferenceTime
+                timeList.append(inferenceTime)
                 print("inferenceTime is " + str(inferenceTime))
-
 
                 counter += 1
                 print("total time is " + str(inferenceTime + readTime + resizeTime))
 
             # Visualize the predictions with image.
-            display_image = tf.expand_dims(image, axis=0)
-            display_image = tf.cast(tf.image.resize_with_pad(
-                display_image, 1280, 1280), dtype=tf.int32)
-            output_overlay = draw_prediction_on_image(
-                np.squeeze(display_image.numpy(), axis=0), keypoints_with_scores)
-            cv2.imshow("pose estimation", output_overlay)
-            cv2.waitKey()
+            # display_image = tf.expand_dims(image, axis=0)
+            # display_image = tf.cast(tf.image.resize_with_pad(
+            #     display_image, 1280, 1280), dtype=tf.int32)
+            # output_overlay = draw_prediction_on_image(
+            #     np.squeeze(display_image.numpy(), axis=0), keypoints_with_scores)
+            # cv2.imshow("pose estimation", output_overlay)
+            # cv2.waitKey()
+    print("max is " + str(totalMax))
+    print("min is " + str(totalMin))
+    print("avg is " + str(sum(timeList)/len(timeList)))
 
 
 if __name__ == "__main__":
