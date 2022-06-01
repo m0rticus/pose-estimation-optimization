@@ -183,8 +183,9 @@ def draw_prediction_on_image(
             interpolation=cv2.INTER_CUBIC)
     return image_from_plot
 
-def main():
 
+
+def main():
     # Initialize the TFLite interpreter
     interpreter = tf.lite.Interpreter(model_path="lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite")
     input_size = 192
@@ -217,7 +218,7 @@ def main():
     totalMin = 50000
     timeList = []
     # Load the input image.
-    print(os.listdir("videos"))
+    # print(os.listdir("videos"))
     for x in os.listdir("videos"):
         if x.endswith(".mp4"):
             image_path = "videos/" + x
