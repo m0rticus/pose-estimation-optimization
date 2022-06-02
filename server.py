@@ -7,10 +7,8 @@ import pickle
 import tensorflow as tf
 import tensorflow_hub as hub
 import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.collections import LineCollection
-import matplotlib.patches as patches
 
+# Dictionary for fast drawing access
 EDGES = {
     (0, 1): 'm',
     (0, 2): 'c',
@@ -32,7 +30,7 @@ EDGES = {
     (14, 16): 'c'
 }
 
-module = hub.load("https://tfhub.dev/google/movenet/singlepose/lightning/4")
+module = hub.load("https://tfhub.dev/google/movenet/singlepose/thunder/4")
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
@@ -42,6 +40,7 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
+# Load movenet model from module and run inference
 def movenet(input_image):
     """Runs detection on an input image.
 
@@ -64,16 +63,17 @@ def movenet(input_image):
     keypoints_with_scores = outputs['output_0'].numpy()
     return keypoints_with_scores
 
-interpreter = tf.lite.Interpreter(model_path="lite-model_movenet_singlepose_lightning_tflite_int8_4.tflite")
-input_size = 192
-interpreter.allocate_tensors()
+input_size = 256
 
+# Threaded function to handle unique clients
+# There's really only one client, but it could work with more
 def handle_client(conn, addr):
     print(f"Handling client {addr}")
     data = b''
     payload_size = struct.calcsize("L")
+    # While client is connected
     while True:
-
+        # Receive data from connected client
         while len(data) < payload_size:
             data += conn.recv(4096)
         packed_msg_size = data[:payload_size]
@@ -81,22 +81,34 @@ def handle_client(conn, addr):
         msg_size = struct.unpack("L", packed_msg_size)[0]
         while len(data) < msg_size:
             data += conn.recv(4096)
+        
+        # Convert data into frame object for inference
         frame_data = data[:msg_size]
         data = data[msg_size:]
         frame = pickle.loads(frame_data)
+
         print("Loaded frame")
         if frame is None:
             break
 
+        original_frame = frame
+
+        # Resize image to input 256x256 for model inference
         input_image = tf.expand_dims(frame, axis=0)
         input_image = tf.image.resize_with_pad(input_image, input_size, input_size)
         keypoints_with_scores = movenet(input_image)
 
-        draw_edges(frame, keypoints_with_scores, EDGES, 0.4)
-        draw_keypoints(frame, keypoints_with_scores, 0.4)
+        # Visualization functions
+        draw_edges(original_frame, keypoints_with_scores, EDGES, 0.5)
+        draw_keypoints(original_frame, keypoints_with_scores, 0.5)
 
-        cv2.imshow("Pose Estimation", frame)
-        cv2.waitKey(1)
+        # Send processed image back to client for display
+        framedData = pickle.dumps(original_frame)
+        message_size = struct.pack("L", len(framedData))
+        conn.sendall(message_size + framedData)
+
+        # cv2.imshow("Pose Estimation", original_frame)
+        # cv2.waitKey(1)
 
         # msg = conn.recv(1024).decode(FORMAT)
         # if msg:
@@ -108,6 +120,8 @@ def handle_client(conn, addr):
     print("Disconnecting...")
     conn.close()
 
+# Helper function to visualize keypoints
+# Taken from StackOverflow / YouTube tutorial
 def draw_keypoints(frame, keypoints, confidence):
     y, x, c = frame.shape
     shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
@@ -117,6 +131,8 @@ def draw_keypoints(frame, keypoints, confidence):
         if kp_conf > confidence:
             cv2.circle(frame, (int(kx), int(ky)), 4, (0,255,0), -1)
 
+# Helper function to visualize edges
+# Taken from StackOverflow / YouTube tutorial
 def draw_edges(frame, keypoints, edges, confidence):
     y, x, c = frame.shape
     shaped = np.squeeze(np.multiply(keypoints, [y,x,1]))
