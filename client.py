@@ -56,49 +56,54 @@ count = 0
 previousFrame = -1
 frameToDisplay = -1
 
-while True:
-    if cap.isOpened():
-
+# while True:
+#     if cap.isOpened():
         # Read in an image and check if we have a previous image
-        ret, frame = cap.read()
-        if count == 0:
-            previousFrame = frame
-            frameToDisplay = frame
-        else:
-            # Calculate difference between frames and whether it's unique enough to process
-            frame_diff = ssim(previousFrame, frame)
-            print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
-                                                       round(frame_diff[0] * 100, 2)))
-
-            if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 75:
-                # Send encoded frame data from client to server
-                data = pickle.dumps(frame)
-                message_size = struct.pack("L", len(data))
-                client.sendall(message_size + data)
-
-                # Wait for server to run inference and send processed frame back
-                while len(recvData) < payload_size:
-                    recvData += client.recv(4096)
-                packed_msg_size = recvData[:payload_size]
-                recvData = recvData[payload_size:]
-                msg_size = struct.unpack("L", packed_msg_size)[0]
-                while len(recvData) < msg_size:
-                    recvData += client.recv(4096)
-                
-                # Convert processed frame from byte data to frame
-                frame_data = recvData[:msg_size]
-                recvData = recvData[msg_size:]
-                frame = pickle.loads(frame_data)
-
+        # ret, frame = cap.read()
+for x in os.listdir("videos"):
+    if x.endswith(".mp4"):
+        image_path = "videos/" + x1
+        video = cv2.VideoCapture(image_path)
+        while video.isOpened() and counter < 20:
+            if count == 0:
+                previousFrame = frame
                 frameToDisplay = frame
-            
-            # Display frame and updated previous frame
-            cv2.imshow("Frame To Display", frameToDisplay)
-            cv2.waitKey(1)
+            else:
+                # Calculate difference between frames and whether it's unique enough to process
+                frame_diff = ssim(previousFrame, frame)
+                print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
+                                                        round(frame_diff[0] * 100, 2)))
 
-            previousFrame = frame
-                        
-        count += 1
+                if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 75:
+                    # Send encoded frame data from client to server
+                    data = pickle.dumps(frame)
+                    message_size = struct.pack("L", len(data))
+                    client.sendall(message_size + data)
+
+                    # Wait for server to run inference and send processed frame back
+                    while len(recvData) < payload_size:
+                        recvData += client.recv(4096)
+                    packed_msg_size = recvData[:payload_size]
+                    recvData = recvData[payload_size:]
+                    msg_size = struct.unpack("L", packed_msg_size)[0]
+                    while len(recvData) < msg_size:
+                        recvData += client.recv(4096)
+                    
+                    # Convert processed frame from byte data to frame
+                    frame_data = recvData[:msg_size]
+                    recvData = recvData[msg_size:]
+                    frame = pickle.loads(frame_data)
+
+                    frameToDisplay = frame
+                
+                # Display frame and updated previous frame
+                cv2.imshow("Frame To Display", frameToDisplay)
+                cv2.waitKey(1)
+
+                previousFrame = frame
+                            
+            count += 1
+        count = 0
 
 # def send(msg):
 #     message = msg.encode(FORMAT)
