@@ -75,56 +75,58 @@ while video.isOpened() and count < 1000:
         frame_diff = ssim(previousFrame, frame)
         print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
                                                 round(frame_diff[0] * 100, 2)))
-        cv2.imshow("Original", frame)
-        cv2.waitKey(100)
+        # cv2.imshow("Original", frame)
+        # cv2.waitKey(100)
 
         if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
-            # # Send encoded frame data from client to server
-            # data = pickle.dumps(frame, protocol=5)
-            # message_size = struct.pack("L", len(data))
-            # client.sendall(message_size + data)
+            # Send encoded frame data from client to server
+            data = pickle.dumps(frame, 0)
+            message_size = struct.pack("L", len(data))
+            client.sendall(message_size + data)
 
-            # # Wait for server to run inference and send processed frame back
-            # while len(recvData) < payload_size:
-            #     recvData += client.recv(4096)
-            # packed_msg_size = recvData[:payload_size]
-            # recvData = recvData[payload_size:]
-            # msg_size = struct.unpack("L", packed_msg_size)[0]
-            # while len(recvData) < msg_size:
-            #     recvData += client.recv(4096)
+            # Wait for server to run inference and send processed frame back
+            while len(recvData) < payload_size:
+                recvData += client.recv(4096)
+            packed_msg_size = recvData[:payload_size]
+            recvData = recvData[payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(recvData) < msg_size:
+                recvData += client.recv(4096)
             
-            # # Convert processed frame from byte data to frame
-            # frame_data = recvData[:msg_size]
-            # recvData = recvData[msg_size:]
-            # frame = pickle.loads(frame_data)
+            # Convert processed frame from byte data to frame
+            frame_data = recvData[:msg_size]
+            recvData = recvData[msg_size:]
+            frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+            # frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            frame_bytes = cv2.imencode('.jpg', frame)[1]
-            frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
+            # frame_bytes = cv2.imencode('.jpg', frame)[1]
+            # frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
 
-            numberOfBytes = len(frame_bytes)
-            header = '' + str(numberOfBytes) + "\0"
-            rawHeader = bytes(header, FORMAT)
-            print("Sending {} bytes...".format(numberOfBytes))
-            print("Header is {}".format(header))
-            client.sendall(rawHeader)
-            client.sendall(frame_bytes)
+            # numberOfBytes = len(frame_bytes)
+            # header = '' + str(numberOfBytes) + "\0"
+            # rawHeader = bytes(header, FORMAT)
+            # print("Sending {} bytes...".format(numberOfBytes))
+            # print("Header is {}".format(header))
+            # client.sendall(rawHeader)
+            # client.sendall(frame_bytes)
 
-            rawReturn = []
-            recv_byte = client.recv(1)
-            while recv_byte != b"\0":
-                rawReturn.append(recv_byte)
-                recv_byte = client.recv(1)
-            print(rawReturn)
-            returnHeader = str(b''.join(rawReturn), FORMAT)
-            print("Expecting message of {} bytes".format(returnHeader))
-            returned_bytes = client.recv(262144)
+            # rawReturn = []
+            # recv_byte = client.recv(1)
+            # while recv_byte != b"\0":
+            #     rawReturn.append(recv_byte)
+            #     recv_byte = client.recv(1)
+            # print(rawReturn)
+            # returnHeader = str(b''.join(rawReturn), FORMAT)
+            # print("Expecting message of {} bytes".format(returnHeader))
+            # returned_bytes = client.recv(262144)
 
-            # returnedText = client.recv(131072)
+            # # returnedText = client.recv(131072)
             
-            nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
-            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if frame is not None:
-                print("Decoded successfully")
+            # nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
+            # frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+            # if frame is not None:
+            print("Decoded successfully")
             frameToDisplay = frame
         
             # Display frame and updated previous frame

@@ -76,43 +76,46 @@ def handle_client(conn, addr):
     # While client is connected
     while True:
         # Receive data from connected client
-        # while len(data) < payload_size:
-        #     data += conn.recv(4096)
-        # packed_msg_size = data[:payload_size]
-        # data = data[payload_size:]
-        # msg_size = struct.unpack("L", packed_msg_size)[0]
-        # while len(data) < msg_size:
-        #     data += conn.recv(4096)
+        while len(data) < payload_size:
+            data += conn.recv(4096)
+        packed_msg_size = data[:payload_size]
+        data = data[payload_size:]
+        msg_size = struct.unpack("L", packed_msg_size)[0]
+        while len(data) < msg_size:
+            data += conn.recv(4096)
         
-        # # Convert data into frame object for inference
-        # frame_data = data[:msg_size]
-        # data = data[msg_size:]
+        # Convert data into frame object for inference
+        frame_data = data[:msg_size]
+        data = data[msg_size:]
 
         # print(frame_data)
-        # frame = pickle.loads(frame_data)
-        rawHeader = []
-        recv_byte = conn.recv(1)
-        while recv_byte != b"\0":
-            rawHeader.append(recv_byte)
-            recv_byte = conn.recv(1)
-        
-        print(rawHeader)
+        frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+        # frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-        header = str(b''.join(rawHeader), FORMAT)
-        print("Expecting message of {} bytes".format(header))
-        returned_bytes = conn.recv(262144)
+        # rawHeader = []
+        # recv_byte = conn.recv(1)
+        # while recv_byte != b"\0":
+        #     rawHeader.append(recv_byte)
+        #     recv_byte = conn.recv(1)
         
-        
-        # returnedText = conn.recv(131072)
-        # returned_bytes = base64.b64decode(returnedText)
+        # print(rawHeader)
 
-        nparr = np.frombuffer(returned_bytes, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # header = str(b''.join(rawHeader), FORMAT)
+        # print("Expecting message of {} bytes".format(header))
+        # returned_bytes = conn.recv(262144)
+        
+        
+        # # returnedText = conn.recv(131072)
+        # # returned_bytes = base64.b64decode(returnedText)
+
+        # nparr = np.frombuffer(returned_bytes, np.uint8)
+        # frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
         if frame is not None:
             print("Loaded frame")
-            original_frame = frame.copy()
-            cv2.imshow("Pose Estimation", original_frame)
-            cv2.waitKey(100)
+            original_frame = frame
+            # cv2.imshow("Pose Estimation", original_frame)
+            # cv2.waitKey(100)
 
             # Resize image to input 256x256 for model inference
             input_image = tf.expand_dims(frame, axis=0)
@@ -124,28 +127,25 @@ def handle_client(conn, addr):
             draw_keypoints(original_frame, keypoints_with_scores, 0.5)
 
             # Send processed image back to client for display
-            # framedData = pickle.dumps(original_frame)
-            # message_size = struct.pack("L", len(framedData))
-            # conn.sendall(message_size + framedData)
+            framedData = pickle.dumps(original_frame)
+            message_size = struct.pack("L", len(framedData))
+            conn.sendall(message_size + framedData)
 
-            frame_bytes = cv2.imencode('.jpg', original_frame)[1]
-            frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
+            # frame_bytes = cv2.imencode('.jpg', original_frame)[1]
+            # frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
 
-            numberOfBytes = len(frame_bytes)
-            print("Sending {} bytes...".format(numberOfBytes))
-            returnHeader = '' + str(numberOfBytes) + "\0"
-            rawReturn = bytes(returnHeader, FORMAT)
+            # numberOfBytes = len(frame_bytes)
+            # print("Sending {} bytes...".format(numberOfBytes))
+            # returnHeader = '' + str(numberOfBytes) + "\0"
+            # rawReturn = bytes(returnHeader, FORMAT)
             
-            conn.sendall(rawReturn)
-            conn.sendall(frame_bytes)
+            # conn.sendall(rawReturn)
+            # conn.sendall(frame_bytes)
             # bytesAsText = base64.b64encode(frame_bytes)
             # conn.sendall(bytesAsText)
         else:
             print("Failed to load frame")
-            print(returned_bytes)
-        
-
-        
+            # print(returned_bytes)
 
         # msg = conn.recv(1024).decode(FORMAT)
         # if msg:
@@ -154,7 +154,7 @@ def handle_client(conn, addr):
             # print(msg)
             # conn.send("Message received".encode(FORMAT))
         
-        garbageCollector = conn.recv(262144)
+        # garbageCollector = conn.recv(262144)
 
     print("Disconnecting...")
     conn.close()
