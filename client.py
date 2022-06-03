@@ -103,6 +103,7 @@ for x in os.listdir("videos"):
                     # frame = pickle.loads(frame_data)
 
                     frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+                    print(len(frame_bytes))
                     client.sendall(frame_bytes)
 
                     returned_bytes = client.recv(65536)
