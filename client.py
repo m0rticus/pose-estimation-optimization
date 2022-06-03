@@ -75,7 +75,7 @@ for x in os.listdir("videos"):
             if count == 0:
                 previousFrame = frame
                 frameToDisplay = frame
-            else:
+            elif frame not None:
                 # Calculate difference between frames and whether it's unique enough to process
                 frame_diff = ssim(previousFrame, frame)
                 print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
