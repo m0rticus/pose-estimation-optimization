@@ -112,20 +112,22 @@ while video.isOpened() and count < 1000:
             while recv_byte != b"\0":
                 rawReturn.append(recv_byte)
                 recv_byte = client.recv(1)
+            print(rawReturn)
             returnHeader = str(b''.join(rawReturn), FORMAT)
-            returned_bytes = client.recv(int(returnHeader))
+            print("Expecting message of {} bytes".format(returnHeader))
+            returned_bytes = client.recv(262144)
 
             # returnedText = client.recv(131072)
             
             nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
+            if frame is not None:
+                print("Decoded successfully")
             frameToDisplay = frame
         
             # Display frame and updated previous frame
-            if frameToDisplay is not None:
-                cv2.imshow("Frame To Display", frameToDisplay)
-                cv2.waitKey(1)
+            cv2.imshow("Frame To Display", frameToDisplay)
+            cv2.waitKey(1)
 
         previousFrame = frame           
 
