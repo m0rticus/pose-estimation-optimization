@@ -96,11 +96,11 @@ def handle_client(conn, addr):
             rawHeader.append(recv_byte)
             recv_byte = conn.recv(1)
         
-        print("Expecting message of {} bytes".format(len(rawHeader)))
         print(rawHeader)
-        
+
         header = str(b''.join(rawHeader), FORMAT)
-        returned_bytes = conn.recv(int(header))
+        print("Expecting message of {} bytes".format(header))
+        returned_bytes = conn.recv(262144)
         
         
         # returnedText = conn.recv(131072)
@@ -149,6 +149,8 @@ def handle_client(conn, addr):
                 # break
             # print(msg)
             # conn.send("Message received".encode(FORMAT))
+        
+        garbageCollector = conn.recv(262144)
 
     print("Disconnecting...")
     conn.close()

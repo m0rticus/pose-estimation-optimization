@@ -123,8 +123,9 @@ while video.isOpened() and count < 1000:
             frameToDisplay = frame
         
             # Display frame and updated previous frame
-            cv2.imshow("Frame To Display", frameToDisplay)
-            cv2.waitKey(1)
+            if frameToDisplay is not None:
+                cv2.imshow("Frame To Display", frameToDisplay)
+                cv2.waitKey(1)
 
         previousFrame = frame           
 
