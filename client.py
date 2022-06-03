@@ -99,7 +99,7 @@ while video.isOpened() and count < 1000:
             print(frame_bytes)
             client.sendall(frame_bytes)
 
-            returned_bytes = client.recv(131072).decode('utf-16')
+            returned_bytes = client.recv(131072)
             
             nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
