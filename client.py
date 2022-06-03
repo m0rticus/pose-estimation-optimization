@@ -96,8 +96,7 @@ while video.isOpened() and count < 1000:
             # frame = pickle.loads(frame_data)
 
             frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
-            # print(len(frame_bytes))
-            # print(frame_bytes)
+            print(frame_bytes)
             client.sendall(frame_bytes)
 
             returned_bytes = client.recv(131072).decode('utf-16')

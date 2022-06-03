@@ -91,7 +91,7 @@ def handle_client(conn, addr):
         # frame = pickle.loads(frame_data)
         
         
-        returned_bytes = conn.recv(131072).decode(FORMAT)
+        returned_bytes = conn.recv(131072)
 
         nparr = np.frombuffer(returned_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
