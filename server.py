@@ -129,13 +129,15 @@ def handle_client(conn, addr):
             # conn.sendall(message_size + framedData)
 
             frame_bytes = cv2.imencode('.jpg', original_frame)[1]
+            frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
+
             numberOfBytes = len(frame_bytes)
             print("Sending {} bytes...".format(numberOfBytes))
             returnHeader = '' + str(numberOfBytes) + "\0"
             rawReturn = bytes(returnHeader, FORMAT)
+            
             conn.sendall(rawReturn)
             conn.sendall(frame_bytes)
-            # frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
             # bytesAsText = base64.b64encode(frame_bytes)
             # conn.sendall(bytesAsText)
         else:

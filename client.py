@@ -99,7 +99,7 @@ while video.isOpened() and count < 1000:
             # frame = pickle.loads(frame_data)
 
             frame_bytes = cv2.imencode('.jpg', frame)[1]
-            # frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
+            frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
 
             numberOfBytes = len(frame_bytes)
             header = '' + str(numberOfBytes) + "\0"
