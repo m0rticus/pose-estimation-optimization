@@ -110,7 +110,9 @@ def handle_client(conn, addr):
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if frame is not None:
             print("Loaded frame")
-            original_frame = frame
+            original_frame = frame.copy()
+            cv2.imshow("Pose Estimation", original_frame)
+            cv2.waitKey(100)
 
             # Resize image to input 256x256 for model inference
             input_image = tf.expand_dims(frame, axis=0)
@@ -126,8 +128,9 @@ def handle_client(conn, addr):
             # message_size = struct.pack("L", len(framedData))
             # conn.sendall(message_size + framedData)
 
-            frame_bytes = cv2.imencode('.jpg', frame)[1]
+            frame_bytes = cv2.imencode('.jpg', original_frame)[1]
             numberOfBytes = len(frame_bytes)
+            print("Sending {} bytes...".format(numberOfBytes))
             returnHeader = '' + str(numberOfBytes) + "\0"
             rawReturn = bytes(returnHeader, FORMAT)
             conn.sendall(rawReturn)
@@ -140,8 +143,7 @@ def handle_client(conn, addr):
             print(returned_bytes)
         
 
-        # cv2.imshow("Pose Estimation", original_frame)
-        # cv2.waitKey(1)
+        
 
         # msg = conn.recv(1024).decode(FORMAT)
         # if msg:
