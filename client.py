@@ -80,7 +80,7 @@ while video.isOpened() and count < 1000:
 
         if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
             # Send encoded frame data from client to server
-            data = pickle.dumps(frame, 0)
+            data = pickle.dumps(frame, 5)
             message_size = struct.pack("L", len(data))
             client.sendall(message_size + data)
 
