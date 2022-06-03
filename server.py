@@ -4,6 +4,7 @@ import cv2
 import struct
 import pickle
 import time
+import base64
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -91,7 +92,8 @@ def handle_client(conn, addr):
         # frame = pickle.loads(frame_data)
         
         
-        returned_bytes = conn.recv(131072)
+        returnedText = conn.recv(131072)
+        returned_bytes = base64.b64decode(returnedText)
 
         nparr = np.frombuffer(returned_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -115,7 +117,8 @@ def handle_client(conn, addr):
 
             frame_bytes = cv2.imencode('.jpg', frame)[1]
             frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
-            conn.sendall(frame_bytes)
+            bytesAsText = base64.b64encode(frame_bytes)
+            conn.sendall(bytesAsText)
         else:
             print("Failed to load frame")
             print(returned_bytes)

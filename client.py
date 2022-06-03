@@ -5,6 +5,7 @@ import struct
 import numpy as np
 import os
 import time
+import base64
 
 PORT = 5050
 FORMAT = 'utf-8'
@@ -97,10 +98,13 @@ while video.isOpened() and count < 1000:
 
             frame_bytes = cv2.imencode('.jpg', frame)[1]
             frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
-            print(len(frame_bytes))
-            client.sendall(frame_bytes)
+            bytesAsText = base64.b64encode(frame_bytes)
 
-            returned_bytes = client.recv(131072)
+            print(len(bytesAsText))
+            client.sendall(bytesAsText)
+
+            returnedText = client.recv(131072)
+            returned_bytes = base64.b64decode(returnedText)
             
             nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
