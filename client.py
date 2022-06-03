@@ -104,6 +104,7 @@ for x in os.listdir("videos"):
 
                     frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
                     print(len(frame_bytes))
+                    print(frame_bytes)
                     client.sendall(frame_bytes)
 
                     returned_bytes = client.recv(131072)

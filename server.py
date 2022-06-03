@@ -31,7 +31,7 @@ EDGES = {
     (14, 16): 'c'
 }
 
-module = hub.load("https://tfhub.dev/google/movenet/singlepose/lightning/4")
+module = hub.load("https://tfhub.dev/google/movenet/singlepose/thunder/4")
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
@@ -92,7 +92,7 @@ def handle_client(conn, addr):
         
         
         returned_bytes = conn.recv(131072)
-                    
+
         nparr = np.frombuffer(returned_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
