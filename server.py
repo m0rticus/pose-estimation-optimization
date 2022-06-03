@@ -90,10 +90,18 @@ def handle_client(conn, addr):
 
         # print(frame_data)
         # frame = pickle.loads(frame_data)
+        rawHeader = []
+        recv_byte = conn.recv(1)
+        while recv_byte != b"\0":
+            rawHeader.append(recv_byte)
+            recv_byte = conn.recv(1)
+        
+        header = str(b''.join(rawHeader), FORMAT)
+        returned_bytes = conn.recv(int(header))
         
         
-        returnedText = conn.recv(131072)
-        returned_bytes = base64.b64decode(returnedText)
+        # returnedText = conn.recv(131072)
+        # returned_bytes = base64.b64decode(returnedText)
 
         nparr = np.frombuffer(returned_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -116,9 +124,14 @@ def handle_client(conn, addr):
             # conn.sendall(message_size + framedData)
 
             frame_bytes = cv2.imencode('.jpg', frame)[1]
-            frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
-            bytesAsText = base64.b64encode(frame_bytes)
-            conn.sendall(bytesAsText)
+            numberOfBytes = len(frame_bytes)
+            returnHeader = '' + str(numberOfBytes) + "\0"
+            rawReturn = bytes(returnHeader, FORMAT)
+            conn.sendall(rawReturn)
+            conn.sendall(frame_bytes)
+            # frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
+            # bytesAsText = base64.b64encode(frame_bytes)
+            # conn.sendall(bytesAsText)
         else:
             print("Failed to load frame")
             print(returned_bytes)

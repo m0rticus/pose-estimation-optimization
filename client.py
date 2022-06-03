@@ -97,14 +97,23 @@ while video.isOpened() and count < 1000:
             # frame = pickle.loads(frame_data)
 
             frame_bytes = cv2.imencode('.jpg', frame)[1]
-            frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
-            bytesAsText = base64.b64encode(frame_bytes)
+            # frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
 
-            print(len(bytesAsText))
-            client.sendall(bytesAsText)
+            numberOfBytes = len(frame_bytes)
+            header = '' + str(numberOfBytes) + "\0"
+            rawHeader = bytes(header, FORMAT)
+            client.sendall(rawHeader)
+            client.sendall(frame_bytes)
 
-            returnedText = client.recv(131072)
-            returned_bytes = base64.b64decode(returnedText)
+            rawReturn = []
+            recv_byte = client.recv(1)
+            while recv_byte != b"\0":
+                rawReturn.append(recv_byte)
+                recv_byte = client.recv(1)
+            returnHeader = str(b''.join(rawReturn), FORMAT)
+            returned_bytes = client.recv(int(returnHeader))
+
+            # returnedText = client.recv(131072)
             
             nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
