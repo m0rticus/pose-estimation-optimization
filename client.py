@@ -77,14 +77,13 @@ for x in os.listdir("videos"):
                 frameToDisplay = frame
             elif frame is not None:
                 # Calculate difference between frames and whether it's unique enough to process
-                print(frame)
                 frame_diff = ssim(previousFrame, frame)
                 print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
                                                         round(frame_diff[0] * 100, 2)))
 
                 if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
                     # Send encoded frame data from client to server
-                    data = pickle.dumps(frame)
+                    data = pickle.dumps(frame, protocol=0)
                     message_size = struct.pack("L", len(data))
                     client.sendall(message_size + data)
 

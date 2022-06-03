@@ -85,6 +85,8 @@ def handle_client(conn, addr):
         # Convert data into frame object for inference
         frame_data = data[:msg_size]
         data = data[msg_size:]
+
+        print(frame_data)
         frame = pickle.loads(frame_data)
 
         print("Loaded frame")
