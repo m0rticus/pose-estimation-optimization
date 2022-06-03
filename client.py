@@ -95,8 +95,9 @@ while video.isOpened() and count < 1000:
             # recvData = recvData[msg_size:]
             # frame = pickle.loads(frame_data)
 
-            frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
-            print(frame_bytes)
+            frame_bytes = cv2.imencode('.jpg', frame)[1]
+            frame_bytes = np.array(frame_bytes, dtype = np.uint8).tobytes()
+            print(len(frame_bytes))
             client.sendall(frame_bytes)
 
             returned_bytes = client.recv(131072)

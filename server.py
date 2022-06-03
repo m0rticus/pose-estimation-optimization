@@ -95,8 +95,6 @@ def handle_client(conn, addr):
 
         nparr = np.frombuffer(returned_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-
         if frame is not None:
             print("Loaded frame")
             original_frame = frame
@@ -115,11 +113,13 @@ def handle_client(conn, addr):
             # message_size = struct.pack("L", len(framedData))
             # conn.sendall(message_size + framedData)
 
-            frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+            frame_bytes = cv2.imencode('.jpg', frame)[1]
+            frame_bytes = np.array(frame_bytes, dtype=np.uint8).tobytes()
             conn.sendall(frame_bytes)
         else:
             print("Failed to load frame")
             print(returned_bytes)
+        
 
         # cv2.imshow("Pose Estimation", original_frame)
         # cv2.waitKey(1)
