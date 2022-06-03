@@ -31,7 +31,7 @@ EDGES = {
     (14, 16): 'c'
 }
 
-module = hub.load("https://tfhub.dev/google/movenet/singlepose/thunder/4")
+module = hub.load("https://tfhub.dev/google/movenet/singlepose/lightning/4")
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
