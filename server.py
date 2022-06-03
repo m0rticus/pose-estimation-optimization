@@ -3,6 +3,7 @@ import threading
 import cv2
 import struct
 import pickle
+import time
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -74,40 +75,51 @@ def handle_client(conn, addr):
     # While client is connected
     while True:
         # Receive data from connected client
-        while len(data) < payload_size:
-            data += conn.recv(4096)
-        packed_msg_size = data[:payload_size]
-        data = data[payload_size:]
-        msg_size = struct.unpack("L", packed_msg_size)[0]
-        while len(data) < msg_size:
-            data += conn.recv(4096)
+        # while len(data) < payload_size:
+        #     data += conn.recv(4096)
+        # packed_msg_size = data[:payload_size]
+        # data = data[payload_size:]
+        # msg_size = struct.unpack("L", packed_msg_size)[0]
+        # while len(data) < msg_size:
+        #     data += conn.recv(4096)
         
-        # Convert data into frame object for inference
-        frame_data = data[:msg_size]
-        data = data[msg_size:]
+        # # Convert data into frame object for inference
+        # frame_data = data[:msg_size]
+        # data = data[msg_size:]
 
-        print(frame_data)
-        frame = pickle.loads(frame_data)
+        # print(frame_data)
+        # frame = pickle.loads(frame_data)
+        
+        
+        returned_bytes = conn.recv(65536)
+                    
+        nparr = np.frombuffer(returned_bytes, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        print("Loaded frame")
-        if frame is None:
-            break
 
-        original_frame = frame
+        if frame is not None:
+            print("Loaded frame")
+            original_frame = frame
 
-        # Resize image to input 256x256 for model inference
-        input_image = tf.expand_dims(frame, axis=0)
-        input_image = tf.image.resize_with_pad(input_image, input_size, input_size)
-        keypoints_with_scores = movenet(input_image)
+            # Resize image to input 256x256 for model inference
+            input_image = tf.expand_dims(frame, axis=0)
+            input_image = tf.image.resize_with_pad(input_image, input_size, input_size)
+            keypoints_with_scores = movenet(input_image)
 
-        # Visualization functions
-        draw_edges(original_frame, keypoints_with_scores, EDGES, 0.5)
-        draw_keypoints(original_frame, keypoints_with_scores, 0.5)
+            # Visualization functions
+            draw_edges(original_frame, keypoints_with_scores, EDGES, 0.5)
+            draw_keypoints(original_frame, keypoints_with_scores, 0.5)
 
-        # Send processed image back to client for display
-        framedData = pickle.dumps(original_frame)
-        message_size = struct.pack("L", len(framedData))
-        conn.sendall(message_size + framedData)
+            # Send processed image back to client for display
+            # framedData = pickle.dumps(original_frame)
+            # message_size = struct.pack("L", len(framedData))
+            # conn.sendall(message_size + framedData)
+
+            frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+            conn.sendall(frame_bytes)
+        else:
+            print("Failed to load frame")
+            print(returned_bytes)
 
         # cv2.imshow("Pose Estimation", original_frame)
         # cv2.waitKey(1)

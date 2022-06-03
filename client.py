@@ -4,6 +4,7 @@ import pickle
 import struct
 import numpy as np
 import os
+import time
 
 PORT = 5050
 FORMAT = 'utf-8'
@@ -68,10 +69,10 @@ for x in os.listdir("videos"):
         video = cv2.VideoCapture(image_path)
         video.set(cv2.CAP_PROP_BUFFERSIZE, 2)
         video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        while video.isOpened() and count < 300:
+        while video.isOpened() and count < 1000:
             ret, frame = video.read()
             frame = cv2.resize(frame, (640, 480))
-
+            print(count)
             if count == 0:
                 previousFrame = frame
                 frameToDisplay = frame
@@ -82,33 +83,43 @@ for x in os.listdir("videos"):
                                                         round(frame_diff[0] * 100, 2)))
 
                 if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
-                    # Send encoded frame data from client to server
-                    data = pickle.dumps(frame, protocol=5)
-                    message_size = struct.pack("L", len(data))
-                    client.sendall(message_size + data)
+                    # # Send encoded frame data from client to server
+                    # data = pickle.dumps(frame, protocol=5)
+                    # message_size = struct.pack("L", len(data))
+                    # client.sendall(message_size + data)
 
-                    # Wait for server to run inference and send processed frame back
-                    while len(recvData) < payload_size:
-                        recvData += client.recv(4096)
-                    packed_msg_size = recvData[:payload_size]
-                    recvData = recvData[payload_size:]
-                    msg_size = struct.unpack("L", packed_msg_size)[0]
-                    while len(recvData) < msg_size:
-                        recvData += client.recv(4096)
+                    # # Wait for server to run inference and send processed frame back
+                    # while len(recvData) < payload_size:
+                    #     recvData += client.recv(4096)
+                    # packed_msg_size = recvData[:payload_size]
+                    # recvData = recvData[payload_size:]
+                    # msg_size = struct.unpack("L", packed_msg_size)[0]
+                    # while len(recvData) < msg_size:
+                    #     recvData += client.recv(4096)
                     
-                    # Convert processed frame from byte data to frame
-                    frame_data = recvData[:msg_size]
-                    recvData = recvData[msg_size:]
-                    frame = pickle.loads(frame_data)
+                    # # Convert processed frame from byte data to frame
+                    # frame_data = recvData[:msg_size]
+                    # recvData = recvData[msg_size:]
+                    # frame = pickle.loads(frame_data)
+
+                    frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+                    client.sendall(frame_bytes)
+
+                    returned_bytes = client.recv(65536)
+                    
+                    nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
+                    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
                     frameToDisplay = frame
                 
-                # Display frame and updated previous frame
-                cv2.imshow("Frame To Display", frameToDisplay)
-                cv2.waitKey(1)
+                    # Display frame and updated previous frame
+                    cv2.imshow("Frame To Display", frameToDisplay)
+                    cv2.waitKey(1)
 
-                previousFrame = frame             
+                previousFrame = frame           
+
             count += 1
+
         count = 0
 
 # def send(msg):
