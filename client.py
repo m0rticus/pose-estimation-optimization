@@ -106,7 +106,7 @@ for x in os.listdir("videos"):
                     print(len(frame_bytes))
                     client.sendall(frame_bytes)
 
-                    returned_bytes = client.recv(65536)
+                    returned_bytes = client.recv(131072)
                     
                     nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
                     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
