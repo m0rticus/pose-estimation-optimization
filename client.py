@@ -14,8 +14,8 @@ ADDR = (SERVER, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 recvData = b''
 payload_size = struct.calcsize("L")
 
@@ -61,7 +61,7 @@ frameToDisplay = -1
 #     if cap.isOpened():
         # Read in an image and check if we have a previous image
         # ret, frame = cap.read()
-        
+
 for x in os.listdir("videos"):
     if x.endswith(".mp4"):
         image_path = "videos/" + x
