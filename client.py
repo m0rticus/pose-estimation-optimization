@@ -3,6 +3,7 @@ import cv2
 import pickle
 import struct
 import numpy as np
+import os
 
 PORT = 5050
 FORMAT = 'utf-8'
@@ -60,11 +61,17 @@ frameToDisplay = -1
 #     if cap.isOpened():
         # Read in an image and check if we have a previous image
         # ret, frame = cap.read()
+        
 for x in os.listdir("videos"):
     if x.endswith(".mp4"):
-        image_path = "videos/" + x1
+        image_path = "videos/" + x
         video = cv2.VideoCapture(image_path)
-        while video.isOpened() and counter < 20:
+        video.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+        video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        while video.isOpened() and count < 300:
+            ret, frame = video.read()
+            frame = cv2.resize(frame, (640, 480))
+
             if count == 0:
                 previousFrame = frame
                 frameToDisplay = frame
@@ -74,7 +81,7 @@ for x in os.listdir("videos"):
                 print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
                                                         round(frame_diff[0] * 100, 2)))
 
-                if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 75:
+                if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
                     # Send encoded frame data from client to server
                     data = pickle.dumps(frame)
                     message_size = struct.pack("L", len(data))
@@ -100,8 +107,7 @@ for x in os.listdir("videos"):
                 cv2.imshow("Frame To Display", frameToDisplay)
                 cv2.waitKey(1)
 
-                previousFrame = frame
-                            
+                previousFrame = frame             
             count += 1
         count = 0
 
