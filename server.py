@@ -97,6 +97,8 @@ def handle_client(conn, addr):
             recv_byte = conn.recv(1)
         
         print("Expecting message of {} bytes".format(len(rawHeader)))
+        print(rawHeader)
+        
         header = str(b''.join(rawHeader), FORMAT)
         returned_bytes = conn.recv(int(header))
         
