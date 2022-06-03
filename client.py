@@ -58,71 +58,64 @@ count = 0
 previousFrame = -1
 frameToDisplay = -1
 
-# while True:
-#     if cap.isOpened():
-        # Read in an image and check if we have a previous image
-        # ret, frame = cap.read()
+image_path = "videos/" + "Kettlebell Training - 12697.mp4"
+video = cv2.VideoCapture(image_path)
+video.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+while video.isOpened() and count < 1000:
+    ret, frame = video.read()
+    frame = cv2.resize(frame, (640, 480))
+    print(count)
+    if count == 0:
+        previousFrame = frame
+        frameToDisplay = frame
+    elif frame is not None:
+        # Calculate difference between frames and whether it's unique enough to process
+        frame_diff = ssim(previousFrame, frame)
+        print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
+                                                round(frame_diff[0] * 100, 2)))
 
-for x in os.listdir("videos"):
-    if x.endswith(".mp4"):
-        image_path = "videos/" + x
-        video = cv2.VideoCapture(image_path)
-        video.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        while video.isOpened() and count < 1000:
-            ret, frame = video.read()
-            frame = cv2.resize(frame, (640, 480))
-            print(count)
-            if count == 0:
-                previousFrame = frame
-                frameToDisplay = frame
-            elif frame is not None:
-                # Calculate difference between frames and whether it's unique enough to process
-                frame_diff = ssim(previousFrame, frame)
-                print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
-                                                        round(frame_diff[0] * 100, 2)))
+        if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
+            # # Send encoded frame data from client to server
+            # data = pickle.dumps(frame, protocol=5)
+            # message_size = struct.pack("L", len(data))
+            # client.sendall(message_size + data)
 
-                if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
-                    # # Send encoded frame data from client to server
-                    # data = pickle.dumps(frame, protocol=5)
-                    # message_size = struct.pack("L", len(data))
-                    # client.sendall(message_size + data)
+            # # Wait for server to run inference and send processed frame back
+            # while len(recvData) < payload_size:
+            #     recvData += client.recv(4096)
+            # packed_msg_size = recvData[:payload_size]
+            # recvData = recvData[payload_size:]
+            # msg_size = struct.unpack("L", packed_msg_size)[0]
+            # while len(recvData) < msg_size:
+            #     recvData += client.recv(4096)
+            
+            # # Convert processed frame from byte data to frame
+            # frame_data = recvData[:msg_size]
+            # recvData = recvData[msg_size:]
+            # frame = pickle.loads(frame_data)
 
-                    # # Wait for server to run inference and send processed frame back
-                    # while len(recvData) < payload_size:
-                    #     recvData += client.recv(4096)
-                    # packed_msg_size = recvData[:payload_size]
-                    # recvData = recvData[payload_size:]
-                    # msg_size = struct.unpack("L", packed_msg_size)[0]
-                    # while len(recvData) < msg_size:
-                    #     recvData += client.recv(4096)
-                    
-                    # # Convert processed frame from byte data to frame
-                    # frame_data = recvData[:msg_size]
-                    # recvData = recvData[msg_size:]
-                    # frame = pickle.loads(frame_data)
+            frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+            # print(len(frame_bytes))
+            # print(frame_bytes)
+            client.sendall(frame_bytes)
 
-                    frame_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
-                    print(len(frame_bytes))
-                    print(frame_bytes)
-                    client.sendall(frame_bytes)
+            returned_bytes = client.recv(131072).decode('utf-16')
+            
+            nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-                    returned_bytes = client.recv(131072)
-                    
-                    nparr = np.frombuffer(returned_bytes, dtype = np.uint8)
-                    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            frameToDisplay = frame
+        
+            # Display frame and updated previous frame
+            cv2.imshow("Frame To Display", frameToDisplay)
+            cv2.waitKey(1)
 
-                    frameToDisplay = frame
-                
-                    # Display frame and updated previous frame
-                    cv2.imshow("Frame To Display", frameToDisplay)
-                    cv2.waitKey(1)
+        previousFrame = frame           
 
-                previousFrame = frame           
+    count += 1
 
-            count += 1
-
-        count = 0
+count = 0
 
 # def send(msg):
 #     message = msg.encode(FORMAT)
