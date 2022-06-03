@@ -8,7 +8,7 @@ import time
 import base64
 
 PORT = 5050
-FORMAT = 'utf-8'
+FORMAT = 'ISO-8859-1'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 SERVER = "192.168.0.160"
 ADDR = (SERVER, PORT)

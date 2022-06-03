@@ -36,7 +36,7 @@ module = hub.load("https://tfhub.dev/google/movenet/singlepose/thunder/4")
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
-FORMAT = 'utf-8'
+FORMAT = 'ISO-8859-1'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
