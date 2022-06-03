@@ -102,6 +102,7 @@ while video.isOpened() and count < 1000:
             numberOfBytes = len(frame_bytes)
             header = '' + str(numberOfBytes) + "\0"
             rawHeader = bytes(header, FORMAT)
+            print("Sending {} bytes...".format(numberOfBytes))
             client.sendall(rawHeader)
             client.sendall(frame_bytes)
 
