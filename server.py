@@ -4,7 +4,6 @@ import cv2
 import struct
 import pickle
 import time
-import base64
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -90,7 +89,6 @@ def handle_client(conn, addr):
 
         # print(frame_data)
         frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
-        # frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
         # rawHeader = []
         # recv_byte = conn.recv(1)
@@ -123,8 +121,8 @@ def handle_client(conn, addr):
             keypoints_with_scores = movenet(input_image)
 
             # Visualization functions
-            draw_edges(original_frame, keypoints_with_scores, EDGES, 0.5)
-            draw_keypoints(original_frame, keypoints_with_scores, 0.5)
+            draw_edges(original_frame, keypoints_with_scores, EDGES, 0.3)
+            draw_keypoints(original_frame, keypoints_with_scores, 0.3)
 
             # Send processed image back to client for display
             framedData = pickle.dumps(original_frame)
