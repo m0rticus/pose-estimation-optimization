@@ -55,6 +55,7 @@ def ssim(i1, i2):
     return mssim
 
 count = 0
+imagesCount = 0
 previousFrame = -1
 frameToDisplay = -1
 
@@ -85,17 +86,19 @@ class VideoCapture:
       time.sleep(0.016)
     self.isOpened = False
 
-
   def read(self):
     return self.q.get()
 
   def getIsOpened(self):
       return self.isOpened
 
+startTime = time.time()
+
 for x in os.listdir("videos"):
     # x = "Kettlebell Training - 12697.mp4"
     image_path = "videos/" + x
     video = VideoCapture(image_path)
+    offClientTimes = []
     while video.getIsOpened() and count < 100:
         frame = video.read()
         frame = cv2.resize(frame, (640, 480))
@@ -115,6 +118,7 @@ for x in os.listdir("videos"):
                 data = pickle.dumps(frame, 5)
                 message_size = struct.pack("L", len(data))
                 client.sendall(message_size + data)
+                offClientStart = time.time()
 
                 # Wait for server to run inference and send processed frame back
                 while len(recvData) < payload_size:
@@ -124,7 +128,8 @@ for x in os.listdir("videos"):
                 msg_size = struct.unpack("L", packed_msg_size)[0]
                 while len(recvData) < msg_size:
                     recvData += client.recv(4096)
-                
+                offClientTimes.append((time.time() - offClientStart) * 1000)
+
                 # Convert processed frame from byte data to frame
                 frame_data = recvData[:msg_size]
                 recvData = recvData[msg_size:]
@@ -159,10 +164,17 @@ for x in os.listdir("videos"):
                 if frame is not None:
                     # print("Decoded successfully")
                     frameToDisplay = frame
-                    previousFrame = frame           
+                    previousFrame = frame
+                    imagesCount += 1           
 
                 # Display frame and updated previous frame
                 cv2.imshow("Frame To Display", frameToDisplay)
                 cv2.waitKey(1)
         count += 1
+        time.sleep(0.25)
+
     count = 0
+  
+print("Total time elapsed (in ms): {}".format((time.time() - startTime) * 1000))
+print("Images count is: {}".format(imagesCount))
+print("Average inference time is: {}".format(sum(offClientTimes)/len(offClientTimes)))
