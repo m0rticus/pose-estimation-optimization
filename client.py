@@ -110,8 +110,6 @@ for x in os.listdir("videos"):
             frame_diff = ssim(previousFrame, frame)
             print("\frame_diff: R {}% G {}% B {}%".format(round(frame_diff[2] * 100, 2), round(frame_diff[1] * 100, 2),
                                                     round(frame_diff[0] * 100, 2)))
-            # cv2.imshow("Original", frame)
-            # cv2.waitKey(100)
 
             if (frame_diff[2] * 100 * .33 + frame_diff[1] * 100 * .33 + frame_diff[0] * 100 * .33) < 98:
                 # Send encoded frame data from client to server
